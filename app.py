@@ -1,5 +1,5 @@
 import requests
-
+import sqlite3
 def make_request(params):
     url = 'https://api.hh.ru/vacancies'
     response = requests.get(url, params=params)
@@ -20,8 +20,24 @@ def get_vacancies(data):
         vacancies.append(vacancy)
     return vacancies
 
-params = {
-    'text': 'Python'
-}
+with sqlite3.connect('database.db') as db:
+    cursor = db.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS vacancies (
+            id TEXT PRIMARY KEY,
+            name TEXT,
+            employer TEXT,
+            description TEXT,
+            skills TEXT,
+            created_at TEXT
+        )
+    ''')
+    db.commit()
 
-print(make_request)
+def load_to_db(vacancies):
+    for vacancy in vacancies:
+        cursor.execute('''
+            INSERT OR REPLACE INTO vacancies (id, name, employer, description, skills, created_at) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (vacancy['id'], vacancy['name'], vacancy['employer'], vacancy['description'], vacancy['skills'], vacancy['created_at']))
+    db.commit()
