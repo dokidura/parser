@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск вакансий на hh.ru</title>
+    <script>
+        async function searchVacancies() {
+            const text = document.getElementById('text').value;
+            const area = document.getElementById('area').value;
+            const page = document.getElementById('page').value;
+            const per_page = document.getElementById('per_page').value;
+            
+            const response = await fetch(`/search?text=${text}&area=${area}&page=${page}&per_page=${per_page}`);
+            const result = await response.json();
+            const vacancies = result.vacancies;
+            const analytics = result.analytics;
+            
+            const results = document.getElementById('results');
+            results.innerHTML = '';
+            
+            vacancies.forEach(vacancy => {
+                const vacancyElement = document.createElement('div');
+                vacancyElement.className = 'vacancy';
+                vacancyElement.innerHTML = `<h3>${vacancy.name}</h3>
+                                             <p>Работодатель: ${vacancy.employer}</p>
+                                             <p>${vacancy.description}</p>
+                                             <p>Дата: ${vacancy.created_at}</p>`;
+                results.appendChild(vacancyElement);
+            });
+            
+            document.getElementById('total-vacancies').innerText = analytics.total_vacancies;
+            
+            const topEmployers = document.getElementById('top-employers');
+            topEmployers.innerHTML = '';
+            
+            analytics.top_employers.forEach(item => {
+                const employerElement = document.createElement('p');
+                employerElement.innerText = `${item[0]}: ${item[1]}`;
+                topEmployers.appendChild(employerElement);
+            });
+
+            document.getElementById('total-skills').innerText = analytics.total_skills;
+        }
+
+    </script>
+</head>
+<body>
+    <h1>Поиск вакансий на hh.ru</h1>
+    <form onsubmit="event.preventDefault(); searchVacancies();">
+        <input type="text" id="text" placeholder="Введите ключевое слово" required>
+        <input type="number" id="area" placeholder="ID региона">
+        <input type="number" id="page" placeholder="Страница">
+        <input type="number" id="per_page" placeholder="Количество на страницу">
+        <button type="submit">Поиск</button>
+    </form>
+    
+    <h2>Результаты поиска</h2>
+    <div id="results"></div>
+    
+    <h2>Аналитика</h2>
+    <p>Общее количество вакансий: <span id="total-vacancies"></span></p>
+    <h3>Топ-5 работодателей по количеству вакансий:</h3>
+    <div id="top-employers"></div>
+</body>
+</html>
